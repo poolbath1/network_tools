@@ -1,6 +1,9 @@
 import socket
 
 
+def response_ok():
+    pass
+
 def server_sock():
     server_socket = socket.socket(
         socket.AF_INET,

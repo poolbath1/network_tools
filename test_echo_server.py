@@ -2,6 +2,8 @@
 
 import echo_server
 import socket
+import BaseHTTPServer
 
-def test_
+def test_response_ok():
+    pass
 
