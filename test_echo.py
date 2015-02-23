@@ -1,29 +1,27 @@
 # -*- coding: utf-8 -*-
-import os
+
+import pytest
+from echo_client import client_socket_function
+import echo_server
 
 
-def test_simple_string(capfd):
-    os.system("python echo_client.py 'This is the message to send'")
-    out, err = capfd.readouterr()
-    assert out == "I heard: This is the message to send\n"
+def test_HTTP_200():
+    response_first_line = client_socket_function('''GET /index.html HTTP/1.1\r\n
+            Host: henryhowes.com\r\n
+            Content-Type: text/xml; charset=utf-8\r\n
+            ''').splitlines()[0].split()
+
+    assert response_first_line[1] == '200' and response_first_line[2] == 'OK'
 
 
-def test_same_size_as_buffer(capfd):
-    msg = u"python echo_client.py 'aaaaaaaabbbbbbbb'".encode('utf-8')
-    os.system(msg)
-    out, err = capfd.readouterr()
-    assert out == u"I heard: aaaaaaaabbbbbbbb\n"
+def test_HTTP_not_GET():
+    response_first_line = client_socket_function('test').splitlines()[0].split()
+    assert response_first_line[1] == '405'
 
 
-def test_unicode_string(capfd):
-    msg = u"python echo_client.py 'test character ó'".encode('utf-8')
-    os.system(msg)
-    out, err = capfd.readouterr()
-    assert out == u"I heard: test character ó\n"
-
-
-def test_unicode_above_255(capfd):
-    msg = u"python echo_client.py 'test character ɯ'".encode('utf-8')
-    os.system(msg)
-    out, err = capfd.readouterr()
-    assert out == u"I heard: test character ɯ\n"
+def test_wrong_protocol():
+    response_first_line = client_socket_function('''GET /index.html HTTP/1.0\r\n
+            Host: henryhowes.com\r\n
+            Content-Type: text/xml; charset=utf-8\r\n
+            ''').splitlines()[0].split()
+    assert response_first_line[1] == '505'
