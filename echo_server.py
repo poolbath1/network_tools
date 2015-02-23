@@ -35,7 +35,6 @@ def parse_request(request):
 def error_check(response):
     http_response_codes = {'405': 'Method Not Allowed',
                            '505': 'HTTP Version Not Supported'}
-
     if response[0] != 'GET':
         error_key = '405'
         raise RequestError(error_key, http_response_codes[error_key])
