@@ -25,6 +25,7 @@ def server_socket_function():
                 recieve_total += recieve
 
             if recieve_total:
+                print(recieve_total)
                 conn.sendall(recieve_total)
 
     except KeyboardInterrupt:
