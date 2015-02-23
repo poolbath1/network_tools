@@ -15,18 +15,18 @@ def server_socket_function():
         while True:
             conn, addr = server_socket.accept()
 
-            recieve_total = ""
+            receive_total = ""
             buffersize = 32
             finished = 0
             while not finished:
-                recieve = conn.recv(buffersize)
-                if len(recieve) < buffersize:
+                receive = conn.recv(buffersize)
+                if len(receive) < buffersize:
                     finished = True
-                recieve_total += recieve
+                receive_total += receive
 
-            if recieve_total:
-                print(recieve_total)
-                conn.sendall(recieve_total)
+            if receive_total:
+                print(receive_total)
+                conn.sendall(receive_total)
 
     except KeyboardInterrupt:
         conn.close()
