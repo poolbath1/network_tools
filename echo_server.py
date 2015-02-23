@@ -1,15 +1,26 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import email.utils
 import socket
+import os
+import mimetypes
 
 
-def response_ok():
+BODY = '''<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n
+          </head>\n<body>\n{}</body>\n</html>
+          '''
+HTTP_RESPONSE_CODES = {'405': 'Method Not Allowed',
+                       '505': 'HTTP Version Not Supported'}
+
+
+def response_ok(*args):
     first_line = 'HTTP/1.1 200 OK'
     timestamp = 'Date: ' + email.utils.formatdate(usegmt=True)
-    content_header = 'Content-Type: text/html'
-    body = '''<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n</head>\n<body>\n{}</body>\n</html>'''.format('200 OK')
-    response_list = [first_line, timestamp, content_header, '', body, '\r\n']
+    content_header = 'Content-Type: {}'.format(args[0][0])
+    body = BODY.format(args[0][1])
+    content_length = 'Content-Length: {}'.format(len(body.encode('utf-8')))
+    response_list = [first_line, timestamp, content_header,
+                     content_length, '', body]
     return '\r\n'.join(response_list).encode('utf-8')
 
 
@@ -18,9 +29,11 @@ def response_error(error):
     timestamp = 'Date: ' + email.utils.formatdate(usegmt=True)
     content_header = 'Content-Type: text/plain'
     body = '{} {}'.format(error.code, error.msg)
-    body = '''<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n</head>\n<body>\n{}</body>\n</html>'''.format(body)
-    response_list = [first_line, timestamp, content_header, '', body, '\r\n']
-    return '\r\n'.join(response_list)
+    body = BODY.format(body)
+    content_length = 'Content-Length: {}'.format(len(body.encode('utf-8')))
+    response_list = [first_line, timestamp, content_header,
+                     content_length, '', body]
+    return '\r\n'.join(response_list).encode('utf-8')
 
 
 def parse_request(request):
@@ -55,12 +68,84 @@ class RequestError(Exception):
         return "{} {}".format(self.code, self.msg)
 
 
+#def resolve_uri(uri):
+#    uri = uri.lstrip("/")
+#    here = os.getcwd()
+#    home = 'webroot'
+#    webhome = os.path.join(here, home)
+#
+#    actual_path = os.path.join(webhome, uri)
+#
+#    if os.path.isdir(actual_path):
+#        body = gen_list(actual_path)
+#        content_type = 'text/html'
+#        info = (content_type, body)
+#    elif os.path.isfile(actual_path):
+#        content_type = mimetypes.guess_type(actual_path)[0]
+#        try:
+#            with open(actual_path, 'r') as f:
+#                return (f.read(), content_type)
+#        except IOError:
+#            error_key = '500'
+#            raise RequestError(error_key, "Internal Server Error")
+#        info = (content_type, body)
+#    else:
+#        error_key = '404'
+#        raise RequestError(error_key, 'Not Found')
+#    return info
+
+def resolve_uri(uri):
+    uri = uri.lstrip("/")
+    here = os.getcwd()
+    home = 'webroot'
+    webhome = os.path.join(here, home)
+    
+    actual_path = os.path.join(webhome, uri)
+
+
+    # if uri is a directory, return HTML listing of that directory as body
+    if os.path.isdir(actual):
+        directory_html = ["<li>{}</li>".format(item) for item in os.listdir(path)]
+        directory_html.insert(0, "<ul>")
+        directory_html.insert(len(directory_html), "</ul>")
+        return ("\n".join(directory_html), "text/html")
+
+    # if the resources is a file, return the contents of the file
+
+    elif os.path.isfile(path):
+        file_type = guess_type(path)[0]
+        try:
+            with open(path, 'r') as f:
+                return (f.read(), file_type)
+        except IOError:
+            raise IOError("Access Denied")
+
+    # if the requested resource cannot be found, raise an appropriate error
+    else:
+        raise IOError("File Not Found")
+    
+    
+def gen_list(uri):
+    path_list = os.listdir(uri)
+    dir_list = ""
+    for i in path_list:
+        dir_list += "<li>"+i+"</li>\n"
+    body = "<ul>\n{}</ul>\n".format(dir_list)
+    return body
+
+
+def gen_text(uri):
+    with open(uri, "rb") as fo:
+        body = fo.read()
+    return body
+
+
 def server_sock():
     server_socket = socket.socket(
         socket.AF_INET,
         socket.SOCK_STREAM,
-        socket.IPPROTO_IP)
-
+        socket.IPPROTO_IP
+    )
     server_socket.bind(('127.0.0.1', 8888))
     server_socket.listen(10)
 
@@ -73,7 +158,6 @@ def server_sock():
             done = False
             while not done:
                 part = conn.recv(buffsize).decode('utf-8')
-                print part
                 if len(part) < buffsize:
                     done = True
                 msg = "{}{}".format(msg, part)
@@ -81,12 +165,13 @@ def server_sock():
 
             if out:
                 try:
-                    response = parse_request(out)
-                    response = response_ok()
+                    uri = parse_request(out)
+                    info = resolve_uri(uri)
+                    response = response_ok(info)
                 except RequestError as error:
                     response = response_error(error)
                 conn.sendall(response)
-                conn.close()
+            conn.close()
 
     except KeyboardInterrupt:
         server_socket.close()

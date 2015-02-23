@@ -21,7 +21,8 @@ def client_socket_function(message):
             receive_total += receive
             client_socket.close()
             finished = 1
-        receive_total += receive
+        else:
+            receive_total += receive
 
     return receive_total
 
