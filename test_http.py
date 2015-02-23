@@ -18,7 +18,7 @@ def test_response_ok():
     ''' Test ok response message. '''
     response = '200 OK'
     content_type = 'text/html'
-    actual = es.response_ok('')
+    actual = es.response_ok()
     assert response in actual
     assert content_type in actual
 
@@ -31,7 +31,7 @@ def test_response_error():
             self.msg = msg
 
     error = error_test('404', 'Not Found')
-    actual = es.response_error(error.code, error.msg)
+    actual = es.response_error(error)
     assert error.code in actual
     assert error.msg in actual
 

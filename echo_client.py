@@ -18,6 +18,7 @@ def client_socket_function(message):
     while not finished:
         receive = client_socket.recv(buffersize).decode('utf-8')
         if len(receive) < buffersize:
+            receive_total += receive
             client_socket.close()
             finished = 1
         receive_total += receive
@@ -26,4 +27,3 @@ def client_socket_function(message):
 
 if __name__ == '__main__':
     receive = client_socket_function(sys.argv[1])
-    print(receive)
