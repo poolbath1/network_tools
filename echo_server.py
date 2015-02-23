@@ -18,7 +18,6 @@ def response_error(error, error_msg):
     response = []
     response.append("HTTP/1.1 {} {}".format(error, error_msg))
     response.append("")
-    response.append("{} {}".format(error, error_msg))
     response = "\r\n".join(response).encode("utf-8")
 
     return response
@@ -34,7 +33,7 @@ def parse_request(request):
         else:
             return response_error(505, "Protocol must be HTTP/1.1")
     else:
-        return response_error(405, "Method must be GET")
+        return response_error(405, "Method not allowed")
 
 
 def server_sock():

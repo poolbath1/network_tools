@@ -7,7 +7,7 @@ import echo_server
 
 def test_HTTP_200():
     response_first_line = client_socket_function('''GET /index.html HTTP/1.1\r\n
-            Host: henryhowes.com\r\n
+            Host: joelstanner.com\r\n
             Content-Type: text/xml; charset=utf-8\r\n
             ''').splitlines()[0].split()
 
@@ -21,7 +21,7 @@ def test_HTTP_not_GET():
 
 def test_wrong_protocol():
     response_first_line = client_socket_function('''GET /index.html HTTP/1.0\r\n
-            Host: henryhowes.com\r\n
+            Host: joelstanner.com\r\n
             Content-Type: text/xml; charset=utf-8\r\n
             ''').splitlines()[0].split()
     assert response_first_line[1] == '505'
