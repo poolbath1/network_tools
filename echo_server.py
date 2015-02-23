@@ -1,40 +1,35 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 from __future__ import print_function
 import socket
-import os
 
 
-s = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM)
-print ('Socket created')
+def server_socket_function():
+    server_socket = socket.socket(socket.AF_INET,
+                                  socket.SOCK_STREAM,
+                                  socket.IPPROTO_IP)
+    server_socket.bind(('127.0.0.1', 50000))
+    server_socket.listen(1)
 
-
-def socketpair():
-    done = False
-    buffer_size = 16
-    response = ''
     try:
-        parent, child = s
-        pid = os.fork()
-        print('PID = ', pid)
-        if pid:
-            parent.close()
-            child.send("Hello parent, do you hear me?")
-            while not done:
-                child_message = child.recv(buffer_size)
-                if len(child_message) < buffer_size:
-                    done = True
-                response += child_message
-            print("parent sent '%s'" % response)
-        else:
-            child.close()
-            parent.send("Yes child, I hear you.")
-            while not done:
-                parent_message = parent.recv(buffer_size)
-                if len(parent_message) < buffer_size:
-                    done = True
-                response += parent_message
-            print("child sent '%s'" % response)
-    except:
-        raise
+        while True:
+            conn, addr = server_socket.accept()
+
+            recieve_total = ""
+            buffersize = 32
+            finished = 0
+            while not finished:
+                recieve = conn.recv(buffersize)
+                if len(recieve) < buffersize:
+                    finished = True
+                recieve_total += recieve
+
+            if recieve_total:
+                conn.sendall(recieve_total)
+
+    except KeyboardInterrupt:
+        conn.close()
+
 
 if __name__ == '__main__':
-    socketpair()
+    server_socket_function()
