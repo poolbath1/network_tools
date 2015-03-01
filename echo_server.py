@@ -19,13 +19,13 @@ def response_error(error):
     content_header = 'Content-Type: text/plain'
     body = '{} {}'.format(error.code, error.msg)
     body = '''<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n</head>\n<body>\n{}</body>\n</html>'''.format(body)
-    response_list = [first_line, timestamp, content_header, '', body, '\r\n']
+    response_list = [first_line, timestamp, content_header, '', body]
     return '\r\n'.join(response_list)
 
 
 def parse_request(request):
     first_line = request.splitlines()[0]
-    first_line = first_line.split(" ")
+    first_line = first_line.split()
 
     response = error_check(first_line)
 
