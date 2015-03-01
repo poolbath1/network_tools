@@ -3,13 +3,15 @@ from __future__ import unicode_literals, print_function
 import email.utils
 import socket
 import os
+import io
 import mimetypes
 
 
 BODY = '''<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n
           </head>\n<body>\n{}</body>\n</html>
           '''
-HTTP_RESPONSE_CODES = {'405': 'Method Not Allowed',
+HTTP_RESPONSE_CODES = {'404': 'Content Not Found',
+                       '405': 'Method Not Allowed',
                        '505': 'HTTP Version Not Supported'}
 
 
@@ -68,75 +70,34 @@ class RequestError(Exception):
         return "{} {}".format(self.code, self.msg)
 
 
-#def resolve_uri(uri):
-#    uri = uri.lstrip("/")
-#    here = os.getcwd()
-#    home = 'webroot'
-#    webhome = os.path.join(here, home)
-#
-#    actual_path = os.path.join(webhome, uri)
-#
-#    if os.path.isdir(actual_path):
-#        body = gen_list(actual_path)
-#        content_type = 'text/html'
-#        info = (content_type, body)
-#    elif os.path.isfile(actual_path):
-#        content_type = mimetypes.guess_type(actual_path)[0]
-#        try:
-#            with open(actual_path, 'r') as f:
-#                return (f.read(), content_type)
-#        except IOError:
-#            error_key = '500'
-#            raise RequestError(error_key, "Internal Server Error")
-#        info = (content_type, body)
-#    else:
-#        error_key = '404'
-#        raise RequestError(error_key, 'Not Found')
-#    return info
-
 def resolve_uri(uri):
-    uri = uri.lstrip("/")
-    here = os.getcwd()
-    home = 'webroot'
-    webhome = os.path.join(here, home)
-    
-    actual_path = os.path.join(webhome, uri)
-
-
-    # if uri is a directory, return HTML listing of that directory as body
-    if os.path.isdir(actual):
-        directory_html = ["<li>{}</li>".format(item) for item in os.listdir(path)]
-        directory_html.insert(0, "<ul>")
-        directory_html.insert(len(directory_html), "</ul>")
-        return ("\n".join(directory_html), "text/html")
-
-    # if the resources is a file, return the contents of the file
-
-    elif os.path.isfile(path):
-        file_type = guess_type(path)[0]
-        try:
-            with open(path, 'r') as f:
-                return (f.read(), file_type)
-        except IOError:
-            raise IOError("Access Denied")
-
-    # if the requested resource cannot be found, raise an appropriate error
+    if os.path.isfile(uri):
+        file_content = read_file(uri)
+        guess = mimetypes.guess_type(uri)[0]
+        response = response_ok(guess, file_content)
+        return response
+    elif os.path.isdir(os.path.abspath(uri)):
+        files = gen_list(uri)
+        response = response_ok('test/html', files)
+        return response
     else:
-        raise IOError("File Not Found")
-    
-    
-def gen_list(uri):
-    path_list = os.listdir(uri)
-    dir_list = ""
-    for i in path_list:
-        dir_list += "<li>"+i+"</li>\n"
-    body = "<ul>\n{}</ul>\n".format(dir_list)
+        error_key = '404'
+        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
+
+
+def read_file(uri):
+    file_info = io.open(uri, "r")
+    body = file_info.read()
+    file_info.close()
     return body
 
 
-def gen_text(uri):
-    with open(uri, "rb") as fo:
-        body = fo.read()
+def gen_list(uri):
+    path_list = os.listdir(uri)
+    dir_list = ""
+    for item in path_list:
+        dir_list += "<li>{}</li>\n".format(item)
+    body = "<ul>\n{}</ul>\n".format(dir_list)
     return body
 
 
@@ -146,8 +107,11 @@ def server_sock():
         socket.SOCK_STREAM,
         socket.IPPROTO_IP
     )
-    server_socket.bind(('127.0.0.1', 8888))
+    response = None
+    port = 8888
+    server_socket.bind(('127.0.0.1', port))
     server_socket.listen(10)
+    print("Now serving on port", port)
 
     buffsize = 4096
     out = ""
@@ -178,3 +142,6 @@ def server_sock():
 
 if __name__ == '__main__':
     server_sock()
+
+
+# https://github.com/nbeck90/network_tools/blob/HTTP2/server.py
