@@ -25,7 +25,7 @@ def response_error(error):
 
 def parse_request(request):
     first_line = request.splitlines()[0]
-    first_line = first_line.split(" ")
+    first_line = first_line.split()
 
     response = error_check(first_line)
 
