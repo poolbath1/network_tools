@@ -152,6 +152,3 @@ def server_sock():
 
 if __name__ == '__main__':
     server_sock()
-
-
-# https://github.com/nbeck90/network_tools/blob/HTTP2/server.py
