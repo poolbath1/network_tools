@@ -14,7 +14,7 @@ HTTP_RESPONSE_CODES = {'404': 'Content Not Found',
                        '405': 'Method Not Allowed',
                        '505': 'HTTP Version Not Supported'}
 
-ROOT_DIR = os.getcwd()
+ROOT_DIR = os.getcwd() + "/webroot"
 
 
 def response_ok(msg, resolved):
@@ -118,7 +118,7 @@ def server_sock():
         socket.IPPROTO_IP
     )
     response = None
-    port = 8889
+    port = 8888
     server_socket.bind(('127.0.0.1', port))
     server_socket.listen(10)
     print("Now serving on port", port)
