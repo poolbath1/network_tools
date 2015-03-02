@@ -14,12 +14,14 @@ HTTP_RESPONSE_CODES = {'404': 'Content Not Found',
                        '405': 'Method Not Allowed',
                        '505': 'HTTP Version Not Supported'}
 
+ROOT_DIR = os.getcwd()
 
-def response_ok(*args):
+
+def response_ok(msg, resolved):
     first_line = 'HTTP/1.1 200 OK'
     timestamp = 'Date: ' + email.utils.formatdate(usegmt=True)
-    content_header = 'Content-Type: {}'.format(args[0][0])
-    body = BODY.format(args[0][1])
+    content_header = 'Content-Type: {}'.format(msg)
+    body = BODY.format(resolved)
     content_length = 'Content-Length: {}'.format(len(body.encode('utf-8')))
     response_list = [first_line, timestamp, content_header,
                      content_length, '', body]
@@ -71,14 +73,22 @@ class RequestError(Exception):
 
 
 def resolve_uri(uri):
-    if os.path.isfile(uri):
-        file_content = read_file(uri)
+    
+    import pdb; pdb.set_trace()
+    
+        
+    
+    path = "{}{}".format(ROOT_DIR, uri)
+    if ".." in path:
+        raise IOError("Access Denied")
+    elif os.path.isfile(path):
+        file_content = read_file(path)
         guess = mimetypes.guess_type(uri)[0]
         response = response_ok(guess, file_content)
         return response
-    elif os.path.isdir(os.path.abspath(uri)):
-        files = gen_list(uri)
-        response = response_ok('test/html', files)
+    elif os.path.isdir(os.path.abspath(path)):
+        files = gen_list(path)
+        response = response_ok('text/html', files)
         return response
     else:
         error_key = '404'
@@ -108,7 +118,7 @@ def server_sock():
         socket.IPPROTO_IP
     )
     response = None
-    port = 8888
+    port = 8889
     server_socket.bind(('127.0.0.1', port))
     server_socket.listen(10)
     print("Now serving on port", port)
@@ -130,10 +140,11 @@ def server_sock():
             if out:
                 try:
                     uri = parse_request(out)
-                    info = resolve_uri(uri)
-                    response = response_ok(info)
+                    response = resolve_uri(uri)
+                    #response = response_ok(info)
                 except RequestError as error:
                     response = response_error(error)
+                print(response)
                 conn.sendall(response)
             conn.close()
 
