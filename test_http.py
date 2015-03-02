@@ -18,7 +18,8 @@ def test_response_ok():
     ''' Test ok response message. '''
     response = '200 OK'
     content_type = 'text/html'
-    actual = es.response_ok()
+    client_request = 'GET / HTTP/1.1\r\n'
+    actual = es.response_ok('text/html', client_request)
     assert response in actual
     assert content_type in actual
 

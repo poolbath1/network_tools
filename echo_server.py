@@ -10,7 +10,8 @@ import mimetypes
 BODY = '''<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n
           </head>\n<body>\n{}</body>\n</html>
           '''
-HTTP_RESPONSE_CODES = {'404': 'Content Not Found',
+HTTP_RESPONSE_CODES = {'403': 'Forbidden',
+                       '404': 'Content Not Found',
                        '405': 'Method Not Allowed',
                        '505': 'HTTP Version Not Supported'}
 
@@ -73,14 +74,10 @@ class RequestError(Exception):
 
 
 def resolve_uri(uri):
-    
-    import pdb; pdb.set_trace()
-    
-        
-    
     path = "{}{}".format(ROOT_DIR, uri)
     if ".." in path:
-        raise IOError("Access Denied")
+        error_key = '403'
+        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
     elif os.path.isfile(path):
         file_content = read_file(path)
         guess = mimetypes.guess_type(uri)[0]
@@ -141,7 +138,6 @@ def server_sock():
                 try:
                     uri = parse_request(out)
                     response = resolve_uri(uri)
-                    #response = response_ok(info)
                 except RequestError as error:
                     response = response_error(error)
                 print(response)
