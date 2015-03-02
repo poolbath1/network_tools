@@ -1,40 +1,38 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, print_function
+from __future__ import print_function
 import email.utils
 import socket
 import os
-import io
 import mimetypes
 
 
-BODY = '''<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n
-          </head>\n<body>\n{}</body>\n</html>
-          '''
+BODY = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8"></head>\n<body>\n{}\n</body>\n</html>'
+
 HTTP_RESPONSE_CODES = {'403': 'Forbidden',
                        '404': 'Content Not Found',
                        '405': 'Method Not Allowed',
                        '505': 'HTTP Version Not Supported'}
 
-ROOT_DIR = os.getcwd() + "/webroot"
+ROOT_DIR = os.path.join(os.getcwd(), "webroot")
 
 
 def response_ok(msg, resolved):
-    first_line = 'HTTP/1.1 200 OK'
-    timestamp = 'Date: ' + email.utils.formatdate(usegmt=True)
-    content_header = 'Content-Type: {}'.format(msg)
-    body = BODY.format(resolved)
-    content_length = 'Content-Length: {}'.format(len(body.encode('utf-8')))
-    response_list = [first_line, timestamp, content_header,
-                     content_length, '', body]
-    return '\r\n'.join(response_list).encode('utf-8')
+    """Return a properly formed HTTP OK 200 response"""
+    first_line = u'HTTP/1.1 200 OK'
+    timestamp = u'Date: ' + email.utils.formatdate(usegmt=True)
+    content_header = u'Content-Type: {}'.format(msg)
+    body = resolved
+    content_length = u'Content-Length: {}'.format(len(body))
+    response = "{}\r\n{}\r\n{}\r\n{}\r\n\r\n{}".format(
+        first_line, timestamp, content_header, content_length, body)
+    return response
 
 
 def response_error(error):
+    """Return HTTP error with a proper code and explaination"""
     first_line = 'HTTP/1.1 {} {}'.format(error.code, error.msg)
     timestamp = 'Date: ' + email.utils.formatdate(usegmt=True)
     content_header = 'Content-Type: text/plain'
     body = '{} {}'.format(error.code, error.msg)
-    body = BODY.format(body)
     content_length = 'Content-Length: {}'.format(len(body.encode('utf-8')))
     response_list = [first_line, timestamp, content_header,
                      content_length, '', body]
@@ -42,23 +40,23 @@ def response_error(error):
 
 
 def parse_request(request):
+    """check the HTTP header for correctness"""
     first_line = request.splitlines()[0]
     first_line = first_line.split()
-
+    print("first line = {}".format(first_line))
     response = error_check(first_line)
 
     return response
 
 
 def error_check(response):
-    http_response_codes = {'405': 'Method Not Allowed',
-                           '505': 'HTTP Version Not Supported'}
+    """Return proper error code and message if there is an error"""
     if response[0] != 'GET':
         error_key = '405'
-        raise RequestError(error_key, http_response_codes[error_key])
+        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
     elif response[2] != 'HTTP/1.1':
         error_key = '505'
-        raise RequestError(error_key, http_response_codes[error_key])
+        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
     else:
         return response[1]
 
@@ -74,6 +72,7 @@ class RequestError(Exception):
 
 
 def resolve_uri(uri):
+    """Return a file if it's a file, return a directory listing if it's a dir"""
     path = "{}{}".format(ROOT_DIR, uri)
     if ".." in path:
         error_key = '403'
@@ -93,19 +92,24 @@ def resolve_uri(uri):
 
 
 def read_file(uri):
-    file_info = io.open(uri, "r")
-    body = file_info.read()
-    file_info.close()
-    return body
+    """Read the contents of a file"""
+    try:
+        with open(uri, "rb") as file:
+            body = file.read()
+        return body
+    except IOError:
+        error_key = '404'
+        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
 
 
 def gen_list(uri):
+    """Create a HTML directory listing"""
     path_list = os.listdir(uri)
     dir_list = ""
     for item in path_list:
         dir_list += "<li>{}</li>\n".format(item)
-    body = "<ul>\n{}</ul>\n".format(dir_list)
-    return body
+    body = BODY.format("<ul>\n{}</ul>\n".format(dir_list))
+    return body.encode('utf-8')
 
 
 def server_sock():
@@ -128,7 +132,7 @@ def server_sock():
             conn, addr = server_socket.accept()
             done = False
             while not done:
-                part = conn.recv(buffsize).decode('utf-8')
+                part = conn.recv(buffsize)
                 if len(part) < buffsize:
                     done = True
                 msg = "{}{}".format(msg, part)
@@ -140,7 +144,6 @@ def server_sock():
                     response = resolve_uri(uri)
                 except RequestError as error:
                     response = response_error(error)
-                print(response)
                 conn.sendall(response)
             conn.close()
 

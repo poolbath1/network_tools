@@ -70,3 +70,4 @@ def test_client_socket_function_505(start_server):
 
     assert error['code'] in actual
     assert error['msg'] in actual
+

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function, unicode_literals
+from __future__ import print_function
 import socket
 import sys
 
@@ -16,7 +16,7 @@ def client_socket_function(message):
     buffersize = 32
     finished = 0
     while not finished:
-        receive = client_socket.recv(buffersize).decode('utf-8')
+        receive = client_socket.recv(buffersize)
         if len(receive) < buffersize:
             receive_total += receive
             client_socket.close()

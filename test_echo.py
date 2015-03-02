@@ -34,9 +34,9 @@ def test_returns_file_content():
             ''').splitlines()
     assert response[0] == "HTTP/1.1 200 OK"
     assert " ".join(response[2].split()[:3]) == "Content-Type: text/html"
-    assert response[3] == "Content-Length: 139"
+    assert response[3] == "Content-Length: 24"
     assert response[4] == ""
-    assert response[12] == "<div>Hello World!</div>"
+    assert response[5] == "<div>Hello World!</div>"
 
 
 def test_returns_directory_listing():
@@ -45,8 +45,8 @@ def test_returns_directory_listing():
             Content-Type: text/xml; charset=utf-8\r\n
             ''').splitlines()
     assert " ".join(response[2].split()[:3]) == "Content-Type: text/html"
-    assert response[3] == "Content-Length: 248"
-    assert response[18] == "<li>test.html</li>"
+    assert response[3] == "Content-Length: 226"
+    assert response[16] == "<li>test.html</li>"
 
 
 def test_file_not_found():
@@ -67,3 +67,12 @@ def test_file_above_root():
     response_first_line = response[0].split()
 
     assert response_first_line[1] == "403"
+
+
+def test_file_is_binary_like_a_jpeg():
+    response = client_socket_function('''GET /images/JPEG_example.jpg HTTP/1.1\r\n
+            Host: joelstanner.com\r\n
+            ''').splitlines()
+    assert response[0] == "HTTP/1.1 200 OK"
+    assert " ".join(response[2].split()[:3]) == "Content-Type: image/jpeg"
+    assert response[3] == "Content-Length: 15138"
