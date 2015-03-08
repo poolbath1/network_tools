@@ -1,29 +1,28 @@
-from echo_server import (parse_request, resolve_uri,
-                         response_error, RequestError)
+from echo_server import (parse_request)
 from gevent.monkey import patch_all
 from gevent.server import StreamServer
 
 
 def echo(socket, address):
-    buffsize = 2048
+    buffer_size = 2048
     try:
-        message = ""
-        while True:
-            data = socket.recv(buffsize)
-            if data:
-                message += data
-            else:
-                try:
-                    uri = parse_request(message)
-                    response = resolve_uri(uri)
-                except RequestError as error:
-                    response = response_error(error)
+        completed = False
+        while not completed:
+            request = ''
+            request_part = socket.recv(buffer_size).decode('utf-8')
+            request += request_part
+            while len(request_part) >= buffer_size:
+                request_part = socket.recv(buffer_size).decode('utf-8')
+                request += request_part
+
+            completed = True
+            if request:
+                response = parse_request(request)
                 socket.sendall(response)
-                socket.close()
-                break
-    except:
+            socket.close()
+
+    except KeyboardInterrupt:
         socket.close()
-        raise
 
 
 if __name__ == '__main__':

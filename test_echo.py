@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pytest
 from echo_client import client_socket_function
 
 
@@ -11,19 +10,6 @@ def test_HTTP_200():
             ''').splitlines()
 
     assert response[0] == "HTTP/1.1 200 OK"
-
-
-def test_HTTP_not_GET():
-    response_first_line = client_socket_function('test').splitlines()[0].split()
-    assert response_first_line[1] == '405'
-
-
-def test_wrong_protocol():
-    response_first_line = client_socket_function('''GET /index.html HTTP/1.0\r\n
-            Host: joelstanner.com\r\n
-            Content-Type: text/xml; charset=utf-8\r\n
-            ''').splitlines()[0].split()
-    assert response_first_line[1] == '505'
 
 
 def test_returns_file_content():
@@ -72,6 +58,11 @@ def test_file_is_binary_like_a_jpeg():
     response = client_socket_function('''GET /images/JPEG_example.jpg HTTP/1.1\r\n
             Host: joelstanner.com\r\n
             ''').splitlines()
+    
+    import pdb; pdb.set_trace()
+    
+        
+    
     assert response[0] == "HTTP/1.1 200 OK"
     assert " ".join(response[2].split()[:3]) == "Content-Type: image/jpeg"
     assert response[3] == "Content-Length: 15138"

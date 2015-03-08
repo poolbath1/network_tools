@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import socket
 import sys
 
@@ -14,16 +13,13 @@ def client_socket_function(message):
 
     receive_total = ""
     buffersize = 2048
-    finished = 0
+    finished = False
     while not finished:
-        receive = client_socket.recv(buffersize)
+        receive = client_socket.recv(buffersize).decode('utf-8')
         if len(receive) < buffersize:
-            receive_total += receive
+            finished = True
             client_socket.close()
-            finished = 1
-        else:
-            receive_total += receive
-
+        receive_total += receive
     return receive_total
 
 if __name__ == '__main__':

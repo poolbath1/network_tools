@@ -20,19 +20,19 @@ def response_ok(msg, resolved):
     first_line = u'HTTP/1.1 200 OK'
     timestamp = u'Date: ' + email.utils.formatdate(usegmt=True)
     content_header = u'Content-Type: {}'.format(msg)
-    body = resolved
+    body = resolved.decode('utf-8')
     content_length = u'Content-Length: {}'.format(len(body))
     response_list = [first_line, timestamp, content_header,
                      content_length, '', body]
-    return '\r\n'.join(response_list).encode('utf-8')
+    return u'\r\n'.join(response_list).encode('utf-8')
 
 
-def response_error(error):
+def response_error(code, msg):
     """Return HTTP error with a proper code and explaination"""
-    first_line = 'HTTP/1.1 {} {}'.format(error.code, error.msg)
+    first_line = 'HTTP/1.1 {} {}'.format(code, msg)
     timestamp = 'Date: ' + email.utils.formatdate(usegmt=True)
     content_header = 'Content-Type: text/plain'
-    body = '{} {}'.format(error.code, error.msg)
+    body = '{} {}'.format(code, msg)
     content_length = 'Content-Length: {}'.format(len(body.encode('utf-8')))
     response_list = [first_line, timestamp, content_header,
                      content_length, '', body]
@@ -46,17 +46,17 @@ def parse_request(request):
     print("first line = {}".format(first_line))
     response = error_check(first_line)
 
-    return response
+    return resolve_uri(response)
 
 
 def error_check(response):
     """Return proper error code and message if there is an error"""
     if response[0] != 'GET':
         error_key = '405'
-        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
+        return RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
     elif response[2] != 'HTTP/1.1':
         error_key = '505'
-        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
+        return RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
     else:
         return response[1]
 
@@ -76,7 +76,7 @@ def resolve_uri(uri):
     path = "{}{}".format(ROOT_DIR, uri)
     if ".." in path:
         error_key = '403'
-        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
+        return response_error(error_key, HTTP_RESPONSE_CODES[error_key])
     elif os.path.isfile(path):
         file_content = read_file(path)
         guess = mimetypes.guess_type(uri)[0]
@@ -88,7 +88,7 @@ def resolve_uri(uri):
         return response
     else:
         error_key = '404'
-        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
+        return response_error(error_key, HTTP_RESPONSE_CODES[error_key])
 
 
 def read_file(uri):
@@ -99,7 +99,7 @@ def read_file(uri):
         return body
     except IOError:
         error_key = '404'
-        raise RequestError(error_key, HTTP_RESPONSE_CODES[error_key])
+        raise response_error(error_key, HTTP_RESPONSE_CODES[error_key])
 
 
 def gen_list(uri):
