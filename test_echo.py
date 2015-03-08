@@ -2,7 +2,6 @@
 
 import pytest
 from echo_client import client_socket_function
-import echo_server
 
 
 def test_HTTP_200():

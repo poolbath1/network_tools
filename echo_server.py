@@ -124,7 +124,7 @@ def server_sock():
     server_socket.listen(10)
     print("Now serving on port", port)
 
-    buffsize = 4096
+    buffsize = 2048
     out = ""
     try:
         while True:
