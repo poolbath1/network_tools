@@ -22,9 +22,9 @@ def response_ok(msg, resolved):
     content_header = u'Content-Type: {}'.format(msg)
     body = resolved
     content_length = u'Content-Length: {}'.format(len(body))
-    response = "{}\r\n{}\r\n{}\r\n{}\r\n\r\n{}".format(
-        first_line, timestamp, content_header, content_length, body)
-    return response
+    response_list = [first_line, timestamp, content_header,
+                     content_length, '', body]
+    return '\r\n'.join(response_list).encode('utf-8')
 
 
 def response_error(error):
@@ -119,7 +119,7 @@ def server_sock():
         socket.IPPROTO_IP
     )
     response = None
-    port = 8888
+    port = 8889
     server_socket.bind(('127.0.0.1', port))
     server_socket.listen(10)
     print("Now serving on port", port)

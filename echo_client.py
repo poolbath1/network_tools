@@ -8,7 +8,7 @@ def client_socket_function(message):
     client_socket = socket.socket(socket.AF_INET,
                                   socket.SOCK_STREAM,
                                   socket.IPPROTO_IP)
-    client_socket.connect(('127.0.0.1', 8888))
+    client_socket.connect(('127.0.0.1', 8889))
     client_socket.sendall(message.encode('utf-8'))
     client_socket.shutdown(socket.SHUT_WR)
 
