@@ -20,10 +20,9 @@ def response_ok(msg, resolved):
     first_line = u'HTTP/1.1 200 OK'
     timestamp = u'Date: ' + email.utils.formatdate(usegmt=True)
     content_header = u'Content-Type: {}'.format(msg)
-    body = resolved
-    content_length = u'Content-Length: {}'.format(len(body))
+    content_length = u'Content-Length: {}'.format(len(resolved))
     response_list = [first_line, timestamp, content_header,
-                     content_length, '', body]
+                     content_length, '', resolved]
     return '\r\n'.join(response_list).encode('utf-8')
 
 
