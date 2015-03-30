@@ -17,14 +17,14 @@ ROOT_DIR = os.path.join(os.getcwd(), "webroot")
 
 def response_ok(msg, resolved):
     """Return a properly formed HTTP OK 200 response"""
-    first_line = u'HTTP/1.1 200 OK'
-    timestamp = u'Date: ' + email.utils.formatdate(usegmt=True)
-    content_header = u'Content-Type: {}'.format(msg)
+    first_line = 'HTTP/1.1 200 OK'
+    timestamp = 'Date: ' + email.utils.formatdate(usegmt=True)
+    content_header = 'Content-Type: {}'.format(msg)
     body = resolved
-    content_length = u'Content-Length: {}'.format(len(body))
+    content_length = 'Content-Length: {}'.format(len(body))
     response_list = [first_line, timestamp, content_header,
                      content_length, '', body]
-    return '\r\n'.join(response_list).encode('utf-8')
+    return '\r\n'.join(response_list)
 
 
 def response_error(error):
