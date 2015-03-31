@@ -13,7 +13,7 @@ and in a seperate terminal:
 Running the server script in one terminal should allow you to run the client script in a separate terminal. The client script takes an argument which is the message to send.  Upon completing, the response from the server is printed to stdout.
 
 ## HTTP3
-Very simple HTTP server. python concurrent_server.py runs this. Responds to HTTP1.1. The Server accepts a request, parses it, and returns an appropriate response. If the request is a file directory, it will list the contents of that directory.
+Very simple HTTP server. `python concurrent_server.py` runs this. Responds to HTTP1.1. The Server accepts a request, parses it, and returns an appropriate response. If the request is a file directory, it will list the contents of that directory.
 
 Original sources forked and modified from:
   - [Constantine Hatzis](https://github.com/constanthatz/network_tools/tree/echo)
