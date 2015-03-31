@@ -1,5 +1,5 @@
 from echo_server import (parse_request, resolve_uri, RequestError,
-                         response_error, response_ok)
+                         response_error)
 from gevent.monkey import patch_all
 from gevent.server import StreamServer
 
@@ -7,23 +7,20 @@ from gevent.server import StreamServer
 def echo(socket, address):
     buffer_size = 2048
     try:
-        request = ''
-        completed = False
-        while not completed:
-            request_part = socket.recv(buffer_size)
-            if len(request_part) < buffer_size:
-                completed = True
-            request += request_part
-
-        if request:
-            try:
-                uri = parse_request(request)
-                info = resolve_uri(uri)
-                response = response_ok(info)
-            except RequestError as error:
-                response = response_error(error)
-            socket.sendall(response)
-        socket.close()
+        message = ""
+        while True:
+            data = socket.recv(buffer_size)
+            if data:
+                message += data
+            else:
+                try:
+                    uri = parse_request(message)
+                    response = resolve_uri(uri)
+                except RequestError as error:
+                    response = response_error(error)
+                socket.sendall(response)
+                socket.close()
+                break
 
     except KeyboardInterrupt:
         socket.close()

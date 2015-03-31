@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pytest
 from echo_client import client_socket_function
 
 
